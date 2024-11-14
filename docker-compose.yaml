@@ -1,0 +1,32 @@
+version: '3.8'
+ 
+services:     
+ web:
+    build: .
+    container_name: panda_capturer
+    ports:
+      - 8008:8008
+    volumes:
+      - ./app:/app
+    working_dir: /app
+    entrypoint: ["streamlit", "run", "streamlit_app.py", "--server.port=8008", "--server.address=0.0.0.0", "--server.maxUploadSize=100"]
+    expose:
+      - 8008
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "http://localhost:8008/_stcore/health"]
+      interval: 1m30s
+      timeout: 30s
+      retries: 5
+      start_period: 30s
+
+
+ tunnel:
+    image: cloudflare/cloudflared
+    restart: unless-stopped
+    command:
+      - tunnel
+      - --no-autoupdate
+      - run
+    environment:
+      - TUNNEL_TOKEN=${TUNNEL_TOKEN}
+      
